@@ -3,7 +3,7 @@ import {
   calculateNetAmount,
   calculateTotalAmount,
 } from "../utils/calculations";
-import ProductsModal from "./productsModal";
+// import ProductsModal from "./productsModal";
 
 const initialProductInvoice = {
   customer: "",
@@ -20,34 +20,50 @@ const ProductInvoiceForm = ({ onAdd }) => {
   const [productInvoice, setProductInvoice] = useState(initialProductInvoice);
   const [products, setProducts] = useState([]);
   const [errors, setErrors] = useState(null);
-  const [isModalOpen, setModalOpen] = useState(false);
+  // const [isModalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
+    async function fetchProducts() {
+      await fetch(import.meta.env.VITE_APP_API_URL + "products")
+        .then((res) => res.json())
+        .then((res) => {
+          setProducts(res);
+        })
+        .catch((err) => console.log(err));
+    }
+    fetchProducts();
+
     // fetch products here
-    setProducts([
-      { product_id: 1, product_name: "product1", rate: 23, unit: "INR" },
-      { product_id: 2, product_name: "product3", rate: 24, unit: "$" },
-      { product_id: 3, product_name: "product2", rate: 25, unit: "$" },
-      { product_id: 4, product_name: "product4", rate: 26, unit: "$" },
-    ]);
+    // setProducts([
+    //   { product_id: 1, product_name: "product1", rate: 23, unit: "INR" },
+    //   { product_id: 2, product_name: "product3", rate: 24, unit: "$" },
+    //   { product_id: 3, product_name: "product2", rate: 25, unit: "$" },
+    //   { product_id: 4, product_name: "product4", rate: 26, unit: "$" },
+    // ]);
   }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = validate();
     setErrors(newErrors);
-    if (errors) return;
-    setModalOpen(true);
-    console.log("productInvoice", productInvoice);
+    if (errors && Object.keys(errors).length > 0) {
+      console.log(errors);
+      return;
+    }
+    // setModalOpen(true);
+
     onAdd(productInvoice);
   };
 
-  console.log(errors);
   const validate = () => {
     const errs = {};
-    if (productInvoice.customer === "") errs.customer = "customer is required";
+    if (productInvoice.customer === "")
+      errs.customer = "Customer Name is required";
     if (productInvoice.product_id === "")
-      errs.product = "Please select a product";
+      errs.product_id = "Please select a product";
+    if (productInvoice.qty <= 0) errs.qty = "Please add quantity";
+    if (productInvoice.disc_percentage === "")
+      errs.disc_percentage = "Please add discount percentage";
     return Object.keys(errs).length === 0 ? null : errs;
   };
 
@@ -65,10 +81,40 @@ const ProductInvoiceForm = ({ onAdd }) => {
     });
   }, [productInvoice.rate, productInvoice.disc_percentage, productInvoice.qty]);
 
+  const validateProperty = (name, value) => {
+    if (name === "customer") {
+      if (value === "") {
+        return "Customer name is required";
+      } else if (value.length < 3)
+        return "Customer name should be at least of 3 characters";
+    }
+    if (name === "product_id") {
+      if (value === "") {
+        return "please select a Product";
+      }
+    }
+    if (name === "qty") {
+      if (value === "" || value == 0) {
+        return "At least 1 product quantity required";
+      }
+    }
+    if (name === "disc_percentage") {
+      if (value === "") {
+        return "Please add discount percentage here (0-100)";
+      }
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    const newErrors = { ...errors };
+    const errMessage = validateProperty(name, value);
+    if (errMessage) {
+      newErrors[name] = errMessage;
+    } else delete newErrors[name];
+    setErrors(newErrors);
     if (name === "product_id") {
-      const choseProduct = products?.find((p) => p.product_id == value);
+      const choseProduct = products?.find((p) => p._id == value);
       setProductInvoice({
         ...productInvoice,
         [name]: value,
@@ -109,14 +155,14 @@ const ProductInvoiceForm = ({ onAdd }) => {
           >
             <option value="">Select a product</option>
             {products?.map((product) => (
-              <option key={product.product_id} value={product.product_id}>
-                {product.product_name}
+              <option key={product._id} value={product._id}>
+                {product.name}
               </option>
             ))}
           </select>
           {errors && errors.product_id && (
             <div className="alert alert-danger mt-1 p-2">
-              {errors.product.id}
+              {errors.product_id}
             </div>
           )}
         </div>
@@ -156,6 +202,9 @@ const ProductInvoiceForm = ({ onAdd }) => {
             className="form-control"
             placeholder="Add Quantity"
           />
+          {errors && errors.qty && (
+            <div className="alert alert-danger mt-1 p-2">{errors.qty}</div>
+          )}
         </div>
         <div className="mb-3">
           <label htmlFor="disc_percentage" className="form-label">
@@ -169,6 +218,11 @@ const ProductInvoiceForm = ({ onAdd }) => {
             className="form-control"
             placeholder="Add Discount Percentage here"
           />
+          {errors && errors.disc_percentage && (
+            <div className="alert alert-danger mt-1 p-2">
+              {errors.disc_percentage}
+            </div>
+          )}
         </div>
         <div className="mb-3">
           <label htmlFor="netAmount" className="form-label">
@@ -204,7 +258,7 @@ const ProductInvoiceForm = ({ onAdd }) => {
           Add
         </button>
       </form>
-      {isModalOpen && <ProductsModal onClose={() => setModalOpen(false)} />}
+      {/* {isModalOpen && <ProductsModal onClose={() => setModalOpen(false)} />} */}
     </>
   );
 };

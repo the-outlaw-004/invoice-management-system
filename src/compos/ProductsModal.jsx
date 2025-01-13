@@ -1,4 +1,5 @@
-const ProductsModal = ({ onClose }) => {
+const ProductsModal = ({ onClose, productInvoices }) => {
+  console.log("form modal", productInvoices);
   const handleClose = () => {
     onClose();
   };
@@ -23,24 +24,48 @@ const ProductsModal = ({ onClose }) => {
             ></button>
           </div>
           <div className="modal-body">
-            {" "}
-            <p>
-              s fugit aliquam hic fugiat dolores perspiciatis dolore odit
-              voluptates. Unde vero deserunt explicabo quia facere magnam labore
-              sint ea consequatur? Deserunt modi assumenda sunt!
-            </p>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Rate</th>
+                  <th>Unit</th>
+                  <th>Qty</th>
+                  <th>Disc%</th>
+                  <th>Net Amt.</th>
+                  <th>Total Amt.</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {productInvoices?.map((item) => (
+                  <tr key={item.product_id}>
+                    <td>{item.product_id.name}</td>
+                    <td>{item.rate}</td>
+                    <td>{item.unit}</td>
+                    <td>{item.qty}</td>
+                    <td>{item.disc_percentage}</td>
+                    <td>{item.netAmount}</td>
+                    <td>{item.totalAmount}</td>
+                    <td>
+                      <button className="btn btn-danger">Remove</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-          <div className="modal-footer">
-            <button
+          <div className="modal-footer py-0 ">
+            {/* <button
               type="button"
               className="btn btn-secondary"
               data-bs-dismiss="modal"
               onClick={handleClose}
             >
               Close
-            </button>
+            </button> */}
             <button type="button" className="btn btn-primary">
-              Understood
+              Submit
             </button>
           </div>
         </div>
