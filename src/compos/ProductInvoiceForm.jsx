@@ -53,6 +53,8 @@ const ProductInvoiceForm = ({ onAdd }) => {
     // setModalOpen(true);
 
     onAdd(productInvoice);
+    setProductInvoice(initialProductInvoice)
+
   };
 
   const validate = () => {
