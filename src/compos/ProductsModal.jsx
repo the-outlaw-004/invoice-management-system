@@ -1,11 +1,41 @@
+import { useState } from "react";
+import Record from "./common/Record";
+import axios from "axios";
+
 const ProductsModal = ({ onClose, productInvoices }) => {
-  console.log("form modal", productInvoices);
+  const [invoicesInModal, setInvoicesInModal] = useState(productInvoices);
+  const [error, setErrors] = useState("");
+
   const handleClose = () => {
     onClose();
   };
+  
+  const handleChangeInvoice = (id, invoiceProduct) => {
+    setInvoicesInModal([
+      ...invoicesInModal.map((i) => (i._id === id ? { ...invoiceProduct } : i)),
+    ]);
+  };
+  
+  const handleRemoveInvoice = (id) => {
+    setInvoicesInModal(invoicesInModal?.filter((i) => i._id !== id));
+  };
+  
+  const handleSubmitInvoices = async () => {
+    try {
+      await axios.post(
+        import.meta.env.VITE_APP_API_URL + "invoice",
+        invoicesInModal
+      );
+      setInvoicesInModal([]);
+      onClose();
+    } catch (error) {
+      setErrors(error);
+    }
+  };
+
   return (
     <div
-      className="modal fade show"
+      className="modal fade show shadow-lg"
       style={{ display: "block" }}
       data-bs-keyboard="false"
       tabIndex="-1"
@@ -24,7 +54,7 @@ const ProductsModal = ({ onClose, productInvoices }) => {
             ></button>
           </div>
           <div className="modal-body">
-            <table className="table">
+            <table className="table text-center">
               <thead>
                 <tr>
                   <th>Product</th>
@@ -38,20 +68,42 @@ const ProductsModal = ({ onClose, productInvoices }) => {
                 </tr>
               </thead>
               <tbody>
-                {productInvoices?.map((item) => (
-                  <tr key={item.product_id}>
-                    <td>{item.product_id.name}</td>
-                    <td>{item.rate}</td>
-                    <td>{item.unit}</td>
-                    <td>{item.qty}</td>
-                    <td>{item.disc_percentage}</td>
-                    <td>{item.netAmount}</td>
-                    <td>{item.totalAmount}</td>
-                    <td>
-                      <button className="btn btn-danger">Remove</button>
-                    </td>
-                  </tr>
+                {invoicesInModal?.map((item) => (
+                  <Record
+                    key={item._id}
+                    invoice={item}
+                    onChangeInvoice={handleChangeInvoice}
+                    onRemoveInvoice={handleRemoveInvoice}
+                  />
+                  // <tr key={item.product_id}>
+                  //   <td>{item.product_id.name}</td>
+                  //   <td>{item.rate}</td>
+                  //   <td>{item.unit}</td>
+                  //   <td>{item.qty}</td>
+                  //   <td>{item.disc_percentage}</td>
+                  //   <td>{item.netAmount}</td>
+                  //   <td>{item.totalAmount}</td>
+                  //   <td>
+                  //     <button className="btn btn-danger">Remove</button>
+                  //   </td>
+                  // </tr>
                 ))}
+                <tr>
+                  <td>Master Total</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td>
+                    &#8377;
+                    {invoicesInModal.reduce(
+                      (acc, item) => acc + parseInt(item.totalAmount),
+                      0
+                    )}
+                  </td>
+                  <td></td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -64,9 +116,14 @@ const ProductsModal = ({ onClose, productInvoices }) => {
             >
               Close
             </button> */}
-            <button type="button" className="btn btn-primary">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleSubmitInvoices}
+            >
               Submit
             </button>
+            {/* {error && <p className="text-danger">{error}</p>} */}
           </div>
         </div>
       </div>

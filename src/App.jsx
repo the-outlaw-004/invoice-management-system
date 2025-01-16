@@ -20,25 +20,21 @@ function App() {
   }, []);
 
   const handleInvoiceAdd = async (invoice) => {
-    console.log("invoice", invoice);
-    const originalInvoices = [...productInvoices];
-    setProductInvoices([invoice, ...productInvoices]);
-    setModalOpen(true);
-    try {
-      await axios.post(
-        import.meta.env.VITE_APP_API_URL + "tempInvoiceDetails",
-        invoice
-      );
-    } catch (error) {
-      console.log(error);
-      setProductInvoices(originalInvoices);
-      setModalOpen(false);
-    }
+    await axios
+      .post(import.meta.env.VITE_APP_API_URL + "tempInvoiceDetails", invoice)
+      .then((res) => {
+        setProductInvoices([res.data, ...productInvoices]);
+        setModalOpen(true);
+      })
+      .catch((error) => {
+        console.log(error);
+        setModalOpen(false);
+      });
   };
   return (
     <div className="">
       <ProductInvoiceForm onAdd={handleInvoiceAdd} />
-      {isModalOpen && (
+      {productInvoices.length > 0 && isModalOpen && (
         <ProductsModal
           productInvoices={productInvoices}
           onClose={() => setModalOpen(false)}
